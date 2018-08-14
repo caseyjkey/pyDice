@@ -2,7 +2,7 @@
 import random
 import pygame
 
-#globals
+# globals
 pygame.init()
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 400
@@ -20,7 +20,7 @@ BLUE  = (  0,   0, 255)
 pygame.display.set_caption("Street Dice")
 DISPLAYSURF = pygame.display.set_mode((SCREEN_HEIGHT, SCREEN_WIDTH))
 BASICFONT = pygame.font.SysFont("monospace", 15)
-FPSCLOCK = pygame.time.clock()
+FPSCLOCK = pygame.time.Clock()
 already_rolled = False
 
 # Import Images for Dice 1-6
@@ -34,7 +34,7 @@ dice_six = pygame.image.load("dice_six.png")
 
 def roll_a_dice():
     """
-    # Two dice are randomlly rolled and have their values returned.
+    Two dice are randomly rolled and have their values returned.
 
     >>> roll_dice()
     0
@@ -52,38 +52,6 @@ def display_dice(first, second):
     display_second(second)
 
 
-# determines which first dice is used
-def display_first(first):
-    if first == 1:
-        DISPLAYSURF.blit(dice_one,(SCREEN_WIDTH/4,0))
-    elif first == 2:
-        DISPLAYSURF.blit(dice_two,(SCREEN_WIDTH/4,0))
-    elif first == 3:
-        DISPLAYSURF.blit(dice_three,(SCREEN_WIDTH/4,0))
-    elif first == 4:
-        DISPLAYSURF.blit(dice_four, (SCREEN_WIDTH/4, 0))
-    elif first == 5:
-        DISPLAYSURF.blit(dice_five, (SCREEN_WIDTH/4, 0))
-    elif first == 6:
-        DISPLAYSURF.blit(dice_six, (SCREEN_HEIGHT/4, 0))
-
-
-# determines which second dice is used
-def display_second(second):
-    if second == 1:
-        DISPLAYSURF.blit(dice_one,(SCREEN_WIDTH/2,0))
-    elif second == 2:
-        DISPLAYSURF.blit(dice_two,(SCREEN_WIDTH/2,0))
-    elif second == 3:
-        DISPLAYSURF.blit(dice_three,(SCREEN_WIDTH/2,0))
-    elif second == 4:
-        DISPLAYSURF.blit(dice_four, (SCREEN_WIDTH/2, 0))
-    elif second == 5:
-        DISPLAYSURF.blit(dice_five, (SCREEN_WIDTH/2, 0))
-    elif second == 6:
-        DISPLAYSURF.blit(dice_six, (SCREEN_HEIGHT/2, 0))
-
-
 # tells the user how to roll
 def produce_button_message(text):
     #  render the text now
@@ -95,17 +63,17 @@ def produce_button_message(text):
 def produce_roll_message(text):
     #  render the text now. 1 refers to aliasing.
     produce_text = BASICFONT.render(text, 1, RED)
-    DISPLAYSURF.blit(produce_text, (SCREEN_WIDTH/8, SCREEN_HEIGHT/2))
+    DISPLAYSURF.blit(produce_text, (SCREEN_WIDTH/8, SCREEN_HEIGHT/2 + 20))
 
 
 # determines which first dice is used
 def display_first(first):
     if first == 1:
-        DISPLAYSURF.blit(dice_one,(SCREEN_WIDTH/4,0))
+        DISPLAYSURF.blit(dice_one, (SCREEN_WIDTH/4, 0))
     elif first == 2:
-        DISPLAYSURF.blit(dice_two,(SCREEN_WIDTH/4,0))
+        DISPLAYSURF.blit(dice_two, (SCREEN_WIDTH/4, 0))
     elif first == 3:
-        DISPLAYSURF.blit(dice_three,(SCREEN_WIDTH/4,0))
+        DISPLAYSURF.blit(dice_three, (SCREEN_WIDTH/4, 0))
     elif first == 4:
         DISPLAYSURF.blit(dice_four, (SCREEN_WIDTH/4, 0))
     elif first == 5:
@@ -117,11 +85,11 @@ def display_first(first):
 # determines which second dice is used
 def display_second(second):
     if second == 1:
-        DISPLAYSURF.blit(dice_one,(SCREEN_WIDTH/2,0))
+        DISPLAYSURF.blit(dice_one, (SCREEN_WIDTH/2, 0))
     elif second == 2:
-        DISPLAYSURF.blit(dice_two,(SCREEN_WIDTH/2,0))
+        DISPLAYSURF.blit(dice_two, (SCREEN_WIDTH/2, 0))
     elif second == 3:
-        DISPLAYSURF.blit(dice_three,(SCREEN_WIDTH/2,0))
+        DISPLAYSURF.blit(dice_three, (SCREEN_WIDTH/2, 0))
     elif second == 4:
         DISPLAYSURF.blit(dice_four, (SCREEN_WIDTH/2, 0))
     elif second == 5:
@@ -130,16 +98,25 @@ def display_second(second):
         DISPLAYSURF.blit(dice_six, (SCREEN_HEIGHT/2, 0))
 
 
-# our roll will display message with our roll converted to text form, alongside
-def before_roll():
-    produce_button_message("Please hit space to roll your dice")
-
-
-def our_roll():
+def our_roll(player):
     #  Completed roll Message. Cast int to str to output the message clearly
-    text = "You've completed your roll " + str(FIRST_DICE) + "," + str(SECOND_DICE) + "."
+    text = player + " rolled " + str(FIRST_DICE) + "," + str(SECOND_DICE) + "."
     print(text)
     produce_roll_message(text)
+
+def roll():
+
+    DISPLAYSURF.fill(WHITE)
+
+    produce_button_message("Please hit space to roll your dice")
+    display_dice(FIRST_DICE, SECOND_DICE)
+    # If the roll is requested, our_roll will execute.
+    if roll_occur:
+        our_roll()
+        roll_occur = False
+
+    pygame.display.update()
+    FPSCLOCK.tick(30)
 
 
 """ -------------- Get # of Players, Get the players' names. -------------- """
@@ -190,54 +167,79 @@ def ask(screen, question):
 
 """ ------------------ END OF ASK FUNCTIONS ---------------------- """
 
-""" Main Game Loop """
-# Step 1. Get number of players
-# Step 2. Determine who rolls first (high/low)
+""" 
+Main Game Loop
+
+1) Roll dice to see who goes first, usually highest first.
+
+2) Each player puts their ante into the pot.
+
+3) A point is obtained for rolling a 7 or 11. 
+
+4) Penalties are paid for rolling a 2, 3, or 12 (craps). 
+
+5) Two points wins the pot, given the second point survives the challenge round (see Rule 9).
+
+6) Rolling a 4, 5, 6, 8, 9, or 10 (the numbers) is inconsequential, nothing happens, except when rolling doubles (See Rule 8: Rolling doubles, gives a re-roll). 
+
+7) The penalty for rolling a 2 or a 12 is to match the ante into the pot. The penalty for rolling a 3 is to put half the ante into the pot. 
+
+8) Rolling doubles, gives a re-roll. Rolling three doubles in a row eliminates the player from that game. 
+
+9) When a player acquires the second point, the game continues for one more round. If any of the other players roll a 7 or 11 they do not receive a point. Their 7 or 11 is used to cancel the second point of the player set to win the game. If a player’s second point gets cancelled, the dice go back to the player that the point got cancelled from and the game continues, i.e., the only way to win the pot is to acquire two points and be able to keep the second point through this last round challenge.
+"""
+# get player names, determine who starts first
+num_players = ask(DISPLAYSURF, "How many players?")
+produce_button_message(num_players)
+
 
 
 # We don't want our roll value output before the first roll occurs.
 roll_occur = False
-first_round = True
+game_step = 1
 while not already_rolled:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            already_rolled = True
+            quit()
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:#these values below don't get saved. I need to save them somehow :(
+            if event.key == pygame.K_SPACE:  # these values below don't get saved. I need to save them somehow :(
                 FIRST_DICE = roll_a_dice()
                 SECOND_DICE = roll_a_dice()
                 roll_occur = True
-        
-    DISPLAYSURF.fill(WHITE)
-    # First round, get player names, determine who starts first         
-    #if first_round is True:
-        #num_players = ask(DISPLAYSURF, "How many players?")
-        #produce_button_message(num_players)
-        #first_round = False
-        #FPSCLOCK.tick(100)
-        #for player in players:
-            # Each player takes a turn, largest takes first roll
-    before_roll()
-    display_dice(FIRST_DICE, SECOND_DICE)
-    # If the roll is requested, our_roll will execute.
-    if roll_occur:
-        our_roll()
-        #roll_occur = False
-    #if (FIRST_DICE + SECOND_DICE is 11 or 7): # The Player wins the bet.
-        
-    pygame.display.update()
-    FPSCLOCK.tick(30)
-    FIRST_DICE = roll_a_dice()
-    SECOND_DICE = roll_a_dice()
-    roll_occur = True
 
     DISPLAYSURF.fill(WHITE)
-    before_roll()
-    display_dice(FIRST_DICE, SECOND_DICE)
-    # If the roll is requested, our_roll will execute.
+
+    produce_button_message("Please hit space to roll your dice")
+
     if roll_occur:
-        our_roll()
+        if game_step == 1:
+            # Create dictionary where key is the player order from 1 to n
+            players = {}
+            for player in range(1, int(num_players)+1):
+                name = ask(DISPLAYSURF, "Player " + str(player) + "'s name")
+                player_roll = None
+                while player_roll is None:
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                            DISPLAYSURF.fill(WHITE)
+                            FIRST_DICE = roll_a_dice()
+                            SECOND_DICE = roll_a_dice()
+                            player_roll = FIRST_DICE + SECOND_DICE
+                            players[name] = player_roll
+                            display_dice(FIRST_DICE, SECOND_DICE)
+                            our_roll(name)
+
+        # Outputs text of roll outcome
+        #our_roll()
+
+
+
+        roll_occur = False
+
+
+
+
     pygame.display.update()
     FPSCLOCK.tick(30)
 
