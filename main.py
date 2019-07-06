@@ -167,6 +167,12 @@ def ask(screen, question):
 
 """ ------------------ END OF ASK FUNCTIONS ---------------------- """
 
+def quit():
+    pygame.display.quit()
+    pygame.quit()
+    exit()
+
+
 """ 
 Main Game Loop
 
@@ -200,7 +206,6 @@ game_step = 1
 while not already_rolled:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
             quit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:  # these values below don't get saved. I need to save them somehow :(
@@ -246,5 +251,4 @@ while not already_rolled:
 # Once the loop exits, the program will quit.
 # Loop will exit when the 'Exit' button on the window is clicked.This bit of code just ensures you can actually
 # click that and exit.
-pygame.quit()
 quit()
